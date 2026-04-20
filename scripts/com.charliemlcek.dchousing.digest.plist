@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.charliemlcek.dchousing.digest</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/charliemlcek/Desktop/Claude Code Project/dc-housing-finder/scripts/run_scraper.sh</string>
+        <string>digest</string>
+    </array>
+
+    <!-- Daily full digest at 8:00 AM local time (ET) -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/charliemlcek/Desktop/Claude Code Project/dc-housing-finder/logs/launchd.digest.out</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/charliemlcek/Desktop/Claude Code Project/dc-housing-finder/logs/launchd.digest.err</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>
