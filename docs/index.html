@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DC Housing Finder — Charlie&#39;s Search</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #fff;
+      --border: #e3e3e3;
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --accent: #c62828;
+      --gold: #b8860b;
+      --green: #2e7d32;
+      --blue: #1565c0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    header .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .stats {
+      display: flex;
+      gap: 24px;
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .stat { font-size: 13px; color: var(--muted); }
+    .stat strong { color: var(--text); font-size: 20px; display: block; }
+    .filters {
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .filter-btn.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+    main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 24px 0 12px;
+    }
+    .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      transition: box-shadow 0.15s, transform 0.15s;
+      position: relative;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+    .card.extraordinary {
+      border-color: var(--gold);
+      border-width: 2px;
+      background: linear-gradient(to bottom, #fffbf0, #fff);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+      letter-spacing: 0.3px;
+    }
+    .badge-extraordinary { background: var(--gold); color: #fff; }
+    .badge-new { background: var(--green); color: #fff; }
+    .badge-tier-1 { background: #e8f5e9; color: var(--green); }
+    .badge-tier-2 { background: #fff8e1; color: #ef6c00; }
+    .badge-tier-3 { background: #e3f2fd; color: var(--blue); }
+    .card h3 {
+      margin: 8px 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .card h3 a { color: inherit; text-decoration: none; }
+    .card h3 a:hover { color: var(--accent); }
+    .card .address { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .price {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 8px 0;
+    }
+    .per-person { color: var(--muted); font-size: 12px; font-weight: 400; }
+    .meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .meta span::before {
+      content: "•";
+      margin-right: 8px;
+      color: var(--border);
+    }
+    .meta span:first-child::before { content: ""; margin: 0; }
+    .amenities {
+      margin-top: 12px;
+      font-size: 12px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .amenity {
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #555;
+    }
+    .amenity.yes { background: #e8f5e9; color: var(--green); }
+    .amenity.no { background: #ffebee; color: var(--accent); }
+    .score {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--text);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .source {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      background: #fff;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    footer {
+      text-align: center;
+      padding: 40px 20px 80px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 640px) {
+      header, .stats, .filters, main { padding-left: 16px; padding-right: 16px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DC Housing Finder — Charlie&#39;s Search</h1>
+    <div class="subtitle">Updated 2026-04-20 01:18 UTC &middot; 29 active listings</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><strong>29</strong>active listings</div>
+    <div class="stat"><strong>0</strong>new today</div>
+    <div class="stat"><strong>0</strong>extraordinary fits</div>
+    <div class="stat"><strong>$1,600</strong>lowest qualifying rent</div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="extraordinary">Extraordinary fit</button>
+    <button class="filter-btn" data-filter="tier_1">Tier 1 neighborhoods</button>
+    <button class="filter-btn" data-filter="under-2800">Under $2800</button>
+    <button class="filter-btn" data-filter="2bd-2ba">2bd/2ba only</button>
+    <button class="filter-btn" data-filter="new">New today</button>
+  </div>
+
+  <main>
+    
+
+    <div class="section-header"><h2>All qualifying listings (29)</h2></div>
+    
+    <div class="grid">
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">71</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1360-d-st-se-washington-dc-20003-1mdjv4s/b/pad" target="_blank" rel="noopener">1360 D St SE #B</a></h3>
+      <div class="address">1360 D St SE Washington DC 20003</div>
+      <div class="price">$2,175 <span class='per-person'>($1,087/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">70</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/410-15th-st-ne-washington-dc-20002-tu06j0/24/pad" target="_blank" rel="noopener">410 15th St NE #24</a></h3>
+      <div class="address">410 15th St NE Washington DC 20002</div>
+      <div class="price">$2,200 <span class='per-person'>($1,100/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">70</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1423-e-st-ne-washington-dc-20002-1wsvgb3/1/pad" target="_blank" rel="noopener">1423 E St NE #1</a></h3>
+      <div class="address">1423 E St NE Washington DC 20002</div>
+      <div class="price">$2,200 <span class='per-person'>($1,100/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3 under-2800">
+      <div class="score">69</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://hotpads.com/1501-n-capitol-st-ne-washington-dc-20002-1jjs8q7/building" target="_blank" rel="noopener">1501 N Capitol St NE</a></h3>
+      <div class="address">1501 N Capitol St NE Washington DC 20002</div>
+      <div class="price">$1,600 <span class='per-person'>($800/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800 2bd-2ba">
+      <div class="score">68</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/504-12-e-st-ne-washington-dc-20002-1y5qcjm/pad" target="_blank" rel="noopener">504 1/2 E St NE</a></h3>
+      <div class="address">504 1/2 E St NE Washington DC 20002</div>
+      <div class="price">$2,500 <span class='per-person'>($1,250/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800 2bd-2ba">
+      <div class="score">67</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://www.zillow.com/homedetails/1300-K-St-SE-APT-202-Washington-DC-20003/2098330519_zpid/" target="_blank" rel="noopener">1300 K St SE APT 202, Washington, DC 20003</a></h3>
+      <div class="address">1300 K St SE APT 202, Washington, DC 20003</div>
+      <div class="price">$2,549 <span class='per-person'>($1,274/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity">parking?</span><span class="amenity">gym?</span></div>
+      <div class="source">via zillow</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800 2bd-2ba">
+      <div class="score">67</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1300-k-st-se-washington-dc-20003-tu0bsz/202/pad" target="_blank" rel="noopener">1300 K St SE #202</a></h3>
+      <div class="address">1300 K St SE Washington DC 20003</div>
+      <div class="price">$2,549 <span class='per-person'>($1,274/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 2bd-2ba">
+      <div class="score">67</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1000-new-jersey-ave-se-washington-dc-20003-snph58/319/pad" target="_blank" rel="noopener">1000 New Jersey Ave SE #319</a></h3>
+      <div class="address">1000 New Jersey Ave SE Washington DC 20003</div>
+      <div class="price">$2,995 <span class='per-person'>($1,497/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity yes">✓ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">64</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/256-15th-st-se-washington-dc-20003-1mdjxkf/building" target="_blank" rel="noopener">256 15th St SE</a></h3>
+      <div class="address">256 15th St SE Washington DC 20003</div>
+      <div class="price">$2,250 <span class='per-person'>($1,125/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 2bd-2ba">
+      <div class="score">63</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1300-4th-st-se-washington-dc-20003-1u348f5/building" target="_blank" rel="noopener">1300 4th St SE</a></h3>
+      <div class="address">1300 4th St SE Washington DC 20003</div>
+      <div class="price">$2,999 <span class='per-person'>($1,499/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Navy Yard</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity yes">✓ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 2bd-2ba">
+      <div class="score">61</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/816-potomac-ave-se-washington-dc-20003-1mdk0g7/building" target="_blank" rel="noopener">816 Potomac Ave SE</a></h3>
+      <div class="address">816 Potomac Ave SE Washington DC 20003</div>
+      <div class="price">$2,800 <span class='per-person'>($1,400/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">60</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1015-e-st-se-washington-dc-20003-1wsdf11/1/pad" target="_blank" rel="noopener">1015 E St SE #1</a></h3>
+      <div class="address">1015 E St SE Washington DC 20003</div>
+      <div class="price">$2,450 <span class='per-person'>($1,225/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">57</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/518-2nd-st-se-washington-dc-20003-1mdjz5v/2/pad" target="_blank" rel="noopener">518 2nd St SE #2</a></h3>
+      <div class="address">518 2nd St SE Washington DC 20003</div>
+      <div class="price">$2,490 <span class='per-person'>($1,245/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol South</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">56</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/527-9th-st-ne-washington-dc-20002-1mdjq2y/2/pad" target="_blank" rel="noopener">527 9th St NE #2</a></h3>
+      <div class="address">527 9th St NE Washington DC 20002</div>
+      <div class="price">$2,800 <span class='per-person'>($1,400/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">56</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1211-12-d-st-ne-washington-dc-20002-1u3cg8b/pad" target="_blank" rel="noopener">1211 1/2 D St NE</a></h3>
+      <div class="address">1211 1/2 D St NE Washington DC 20002</div>
+      <div class="price">$2,600 <span class='per-person'>($1,300/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">55</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1444-independence-ave-se-washington-dc-20003-1mdjvw8/6/pad" target="_blank" rel="noopener">1444 Independence Ave SE #6</a></h3>
+      <div class="address">1444 Independence Ave SE Washington DC 20003</div>
+      <div class="price">$2,872 <span class='per-person'>($1,436/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1 under-2800">
+      <div class="score">55</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1983-webster-washington-dc-20003-24t2cjm/pad" target="_blank" rel="noopener">1983 - Webster</a></h3>
+      <div class="address">632 E Capitol St NE Washington DC 20003</div>
+      <div class="price">$2,662 <span class='per-person'>($1,331/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">52</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1025-1st-st-se-washington-dc-20003-242avm9/301/pad" target="_blank" rel="noopener">1025 1st St SE #301</a></h3>
+      <div class="address">1025 1st St SE Washington DC 20003</div>
+      <div class="price">$2,800 <span class='per-person'>($1,400/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Navy Yard</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3 under-2800">
+      <div class="score">51</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://www.zillow.com/homedetails/33-Florida-Ave-NE-3-Washington-DC-20002/2054590577_zpid/" target="_blank" rel="noopener">33 Florida Ave NE #3, Washington, DC 20002</a></h3>
+      <div class="address">33 Florida Ave NE #3, Washington, DC 20002</div>
+      <div class="price">$2,150 <span class='per-person'>($1,075/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity">parking?</span><span class="amenity">gym?</span></div>
+      <div class="source">via zillow</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3 under-2800">
+      <div class="score">51</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://hotpads.com/33-florida-ave-ne-washington-dc-20002-1mdjngt/3/pad" target="_blank" rel="noopener">33 Florida Ave NE #3</a></h3>
+      <div class="address">33 Florida Ave NE Washington DC 20002</div>
+      <div class="price">$2,150 <span class='per-person'>($1,075/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">50</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://www.zillow.com/homedetails/1444-Independence-Ave-SE-6-Washington-DC-20003/460781043_zpid/" target="_blank" rel="noopener">1444 Independence Ave SE #6, Washington, DC 20003</a></h3>
+      <div class="address">1444 Independence Ave SE #6, Washington, DC 20003</div>
+      <div class="price">$2,872 <span class='per-person'>($1,436/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity">parking?</span><span class="amenity">gym?</span></div>
+      <div class="source">via zillow</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">49</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/220-2nd-st-se-washington-dc-20003-1mdjx91/building" target="_blank" rel="noopener">220 2nd St SE</a></h3>
+      <div class="address">220 2nd St SE Washington DC 20003</div>
+      <div class="price">$2,800 <span class='per-person'>($1,400/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol South</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">47</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/d-165-se-washington-dc-20003-tu09n5/pad" target="_blank" rel="noopener">D-165 SE</a></h3>
+      <div class="address">165 D St SE Washington DC 20003</div>
+      <div class="price">$2,900 <span class='per-person'>($1,450/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol South</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3 2bd-2ba">
+      <div class="score">46</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://hotpads.com/50-florida-ave-ne-washington-dc-20002-1pkef0s/225/pad" target="_blank" rel="noopener">50 Florida Ave NE #225</a></h3>
+      <div class="address">50 Florida Ave NE Washington DC 20002</div>
+      <div class="price">$3,200 <span class='per-person'>($1,600/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity yes">✓ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3">
+      <div class="score">43</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://hotpads.com/the-florian-washington-dc-20002-23z8r3b/building" target="_blank" rel="noopener">1 Florida Ave NE</a></h3>
+      <div class="address">1 Florida Ave NE Washington DC 20002</div>
+      <div class="price">$2,890 <span class='per-person'>($1,445/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity yes">✓ parking</span><span class="amenity yes">✓ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">42</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://www.zillow.com/homedetails/410-11th-St-NE-APT-24-Washington-DC-20002/420495_zpid/" target="_blank" rel="noopener">410 11th St NE APT 24, Washington, DC 20002</a></h3>
+      <div class="address">410 11th St NE APT 24, Washington, DC 20002</div>
+      <div class="price">$3,200 <span class='per-person'>($1,600/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity">parking?</span><span class="amenity">gym?</span></div>
+      <div class="source">via zillow</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">42</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/410-11th-st-ne-washington-dc-20002-tu05yp/24/pad" target="_blank" rel="noopener">410 11th St NE #24</a></h3>
+      <div class="address">410 11th St NE Washington DC 20002</div>
+      <div class="price">$3,200 <span class='per-person'>($1,600/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_1">
+      <div class="score">42</div>
+      <div><span class="badge badge-tier_1">Tier 1</span></div>
+      <h3><a href="https://hotpads.com/1307-k-st-se-washington-dc-20003-1mdjupd/building" target="_blank" rel="noopener">1307 K St SE</a></h3>
+      <div class="address">1307 K St SE Washington DC 20003</div>
+      <div class="price">$3,200 <span class='per-person'>($1,600/person)</span></div>
+      <div class="meta">
+        <span>2bd / 1.0ba</span>
+        <span>Capitol Hill</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity no">✗ parking</span><span class="amenity no">✗ gym</span></div>
+      <div class="source">via hotpads</div>
+    </div>
+      
+        <div class="card" data-flags="tier_3 2bd-2ba">
+      <div class="score">36</div>
+      <div><span class="badge badge-tier_3">Tier 3</span></div>
+      <h3><a href="https://www.zillow.com/homedetails/50-Florida-Ave-NE-APT-225-Washington-DC-20002/311114587_zpid/" target="_blank" rel="noopener">50 Florida Ave NE APT 225, Washington, DC 20002</a></h3>
+      <div class="address">50 Florida Ave NE APT 225, Washington, DC 20002</div>
+      <div class="price">$3,200 <span class='per-person'>($1,600/person)</span></div>
+      <div class="meta">
+        <span>2bd / 2.0ba</span>
+        <span>NoMa</span>
+      </div>
+      <div class="amenities"><span class="amenity">in-unit laundry?</span><span class="amenity">parking?</span><span class="amenity">gym?</span></div>
+      <div class="source">via zillow</div>
+    </div>
+      
+    </div>
+    
+  </main>
+
+  <footer>
+    Auto-generated by dc-housing-finder &middot; Next refresh in &lt; 3 hours &middot; Data sourced from Craigslist, Apartments.com, Zillow, HotPads
+  </footer>
+
+  <script>
+    // Client-side filtering
+    const buttons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.card');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        cards.forEach(card => {
+          if (filter === 'all') { card.style.display = ''; return; }
+          const flags = (card.dataset.flags || '').split(' ');
+          card.style.display = flags.includes(filter) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

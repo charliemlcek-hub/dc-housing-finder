@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #fff;
+      --border: #e3e3e3;
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --accent: #c62828;
+      --gold: #b8860b;
+      --green: #2e7d32;
+      --blue: #1565c0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    header .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .stats {
+      display: flex;
+      gap: 24px;
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .stat { font-size: 13px; color: var(--muted); }
+    .stat strong { color: var(--text); font-size: 20px; display: block; }
+    .filters {
+      padding: 16px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .filter-btn.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+    main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 24px 0 12px;
+    }
+    .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      transition: box-shadow 0.15s, transform 0.15s;
+      position: relative;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+    .card.extraordinary {
+      border-color: var(--gold);
+      border-width: 2px;
+      background: linear-gradient(to bottom, #fffbf0, #fff);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+      letter-spacing: 0.3px;
+    }
+    .badge-extraordinary { background: var(--gold); color: #fff; }
+    .badge-new { background: var(--green); color: #fff; }
+    .badge-tier-1 { background: #e8f5e9; color: var(--green); }
+    .badge-tier-2 { background: #fff8e1; color: #ef6c00; }
+    .badge-tier-3 { background: #e3f2fd; color: var(--blue); }
+    .card h3 {
+      margin: 8px 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .card h3 a { color: inherit; text-decoration: none; }
+    .card h3 a:hover { color: var(--accent); }
+    .card .address { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .price {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 8px 0;
+    }
+    .per-person { color: var(--muted); font-size: 12px; font-weight: 400; }
+    .meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .meta span::before {
+      content: "•";
+      margin-right: 8px;
+      color: var(--border);
+    }
+    .meta span:first-child::before { content: ""; margin: 0; }
+    .amenities {
+      margin-top: 12px;
+      font-size: 12px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .amenity {
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #555;
+    }
+    .amenity.yes { background: #e8f5e9; color: var(--green); }
+    .amenity.no { background: #ffebee; color: var(--accent); }
+    .score {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--text);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .source {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      background: #fff;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    footer {
+      text-align: center;
+      padding: 40px 20px 80px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 640px) {
+      header, .stats, .filters, main { padding-left: 16px; padding-right: 16px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ title }}</h1>
+    <div class="subtitle">Updated {{ updated_at }} &middot; {{ active_count }} active listings</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><strong>{{ active_count }}</strong>active listings</div>
+    <div class="stat"><strong>{{ new_today_count }}</strong>new today</div>
+    <div class="stat"><strong>{{ extraordinary_count }}</strong>extraordinary fits</div>
+    <div class="stat"><strong>${{ cheapest_price or "—" }}</strong>lowest qualifying rent</div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="extraordinary">Extraordinary fit</button>
+    <button class="filter-btn" data-filter="tier_1">Tier 1 neighborhoods</button>
+    <button class="filter-btn" data-filter="under-2800">Under $2800</button>
+    <button class="filter-btn" data-filter="2bd-2ba">2bd/2ba only</button>
+    <button class="filter-btn" data-filter="new">New today</button>
+  </div>
+
+  <main>
+    {% if extraordinary %}
+    <div class="section-header"><h2>Extraordinary fits ({{ extraordinary|length }})</h2></div>
+    <div class="grid">
+      {% for l in extraordinary %}
+        {{ render_card(l, True) | safe }}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="section-header"><h2>All qualifying listings ({{ all_listings|length }})</h2></div>
+    {% if all_listings %}
+    <div class="grid">
+      {% for l in all_listings %}
+        {{ render_card(l, False) | safe }}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">No matching listings yet. Scrapers run every 3 hours — check back soon.</div>
+    {% endif %}
+  </main>
+
+  <footer>
+    Auto-generated by dc-housing-finder &middot; Next refresh in &lt; 3 hours &middot; Data sourced from Craigslist, Apartments.com, Zillow, HotPads
+  </footer>
+
+  <script>
+    // Client-side filtering
+    const buttons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.card');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        cards.forEach(card => {
+          if (filter === 'all') { card.style.display = ''; return; }
+          const flags = (card.dataset.flags || '').split(' ');
+          card.style.display = flags.includes(filter) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

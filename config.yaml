@@ -1,0 +1,68 @@
+# DC Housing Finder — Search criteria
+# Edit this file to change search parameters
+
+search:
+  city: "Washington, DC"
+  min_bedrooms: 2
+  max_bedrooms: 2
+  # Accept 2bd/1ba listings but they never qualify as "extraordinary"
+  min_bathrooms: 1
+  preferred_bathrooms: 2
+  max_rent: 3200           # total apartment rent (2 people splitting)
+  min_rent: 1500           # filter out suspiciously-cheap scam listings
+  move_in_start: "2026-05-28"
+  move_in_end: "2026-06-10"
+
+# Ranked neighborhoods — higher tier = higher score weight
+# Tier 1 > Tier 2 (with explicit gap) > Tier 3
+neighborhoods:
+  tier_1:
+    - name: "Capitol Hill"
+      score_weight: 100
+    - name: "Navy Yard"
+      score_weight: 90
+    - name: "Capitol South"
+      score_weight: 95
+  tier_2:
+    - name: "Capitol Riverfront"
+      score_weight: 85
+  tier_3:
+    - name: "NoMa"
+      score_weight: 60
+    - name: "Southwest Waterfront"
+      score_weight: 55
+
+must_have:
+  - in_unit_laundry
+
+nice_to_have:
+  - parking
+  - gym
+
+# "Extraordinary fit" alert criteria — sends immediate email
+extraordinary_fit:
+  max_rent: 2800
+  neighborhoods: ["Capitol Hill"]
+  bedrooms: 2
+  bathrooms: 2      # strict 2/2 only
+  required: ["in_unit_laundry"]
+
+# Email config (values come from env vars — never commit secrets)
+email:
+  sender: "charliemlcek@gmail.com"
+  recipient: "charliemlcek@gmail.com"
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  daily_digest_hour_et: 8
+
+# Dashboard
+dashboard:
+  title: "DC Housing Finder — Charlie's Search"
+  output_dir: "docs"
+
+# Scraping
+scraping:
+  rate_limit_seconds: 2
+  timeout_seconds: 15
+  user_agent_rotation: true
+  max_listings_per_source: 200
